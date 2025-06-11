@@ -2,6 +2,9 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Container, Box } from "@yamada-ui/react";
 import parse from "html-react-parser";
+import { useQuery } from "@tanstack/react-query";
+
+import "./markdown.css";
 
 export default function App() {
 
@@ -16,12 +19,21 @@ export default function App() {
 }
 
 function Contents() {
-    const contents = "<h1>工事中</h1> <p> ただいま、<strong>工事中</strong>です。 </p>";
+    const { data: contents, isPending } = useQuery({
+        queryKey: ["contents"],
+        queryFn: async (): Promise<string> => {
+            return await invoke<string>("contents");
+        },
+    });
+
+    if (isPending) {
+        return ( <p>Loading...</p> );
+    }
 
     return (
-        <>
-            {parse(contents)}
-        </>
+        <div className="markdown">
+            {parse(contents??"")}
+        </div>
     );
 }
 
