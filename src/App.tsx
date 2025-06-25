@@ -1,5 +1,5 @@
 //import { useState } from "react";
-//import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { Container, Box, IconButton, Wrap} from "@yamada-ui/react";
 import { MdOutlineFileOpen } from "react-icons/md";
 
@@ -21,9 +21,15 @@ export default function App() {
 }
 
 function Toolbar() {
+    const handleOpenFile = async () => {
+        console.log("Open file clicked");
+        await invoke("choose_file");
+    }
+
     return (
         <Wrap align="center" paddingX="0.5em" marginY="auto">
-            <IconButton variant="outline" icon={<MdOutlineFileOpen />} size="md" />
+            <IconButton variant="outline" icon={<MdOutlineFileOpen />} size="md"
+                onClick={handleOpenFile} />
         </Wrap>
     );
 }
