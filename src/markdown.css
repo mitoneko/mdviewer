@@ -41,7 +41,7 @@
         text-decoration: underline;
     }
 
-    table , td, th{
+    table, td, th {
         border:1px solid #222;
         border-collapse: collapse;
     }
