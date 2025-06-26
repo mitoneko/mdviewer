@@ -1,39 +1,34 @@
-import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Container, Box } from "@yamada-ui/react";
-import parse from "html-react-parser";
-import { useQuery } from "@tanstack/react-query";
+import { Container, Box, IconButton, Wrap} from "@yamada-ui/react";
+import { MdOutlineFileOpen } from "react-icons/md";
 
-import "./markdown.css";
+import Contents from "./Contents";
 
 export default function App() {
 
   return (
-      <Container width="100dvw" height="100dvh" margin="0" padding="0" gap="0">
-          <Box height="4em" bg="#FFBA84"></Box>
-          <Box height="calc(100% - 4em)" >
+      <Container width="100dvw" height="100dvh" margin="0" 
+          padding="0" gap="0" overflow="hidden">
+          <Container bg="#FFBA84" height="4em" gap="0" padding="0">
+              <Toolbar />
+          </Container>
+          <Box height="calc(100% - 4em)"  padding="1em" overflowY="auto">
               <Contents />
           </Box>
       </Container>
   );
 }
 
-function Contents() {
-    const { data: contents, isPending } = useQuery({
-        queryKey: ["contents"],
-        queryFn: async (): Promise<string> => {
-            return await invoke<string>("contents");
-        },
-    });
-
-    if (isPending) {
-        return ( <p>Loading...</p> );
+function Toolbar() {
+    const handleOpenFile = async () => {
+        console.log("Open file clicked");
+        await invoke("choose_file");
     }
 
     return (
-        <div className="markdown">
-            {parse(contents??"")}
-        </div>
+        <Wrap align="center" paddingX="0.5em" marginY="auto">
+            <IconButton variant="outline" icon={<MdOutlineFileOpen />} size="md"
+                onClick={handleOpenFile} />
+        </Wrap>
     );
 }
-

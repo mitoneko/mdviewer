@@ -1,18 +1,18 @@
 [package]
 name = "mdviewer"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.0.1"
+description = "MDファイルビューア"
+authors = ["美都"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
+#[lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "mdviewer_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+#name = "mdviewer_lib"
+#crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -22,5 +22,14 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-pulldown-cmark = "0.13.0"
+pulldown-cmark = "0.13"
+log = "0.4"
+fern = "0.7"
+clap = { version = "4.5", features = ["derive"] }
+directories = "6.0.0"
+chrono = "0.4.41"
+tokio = { version = "1.45.1", features = ["io-util", "rt", "rt-multi-thread"] }
+rfd = "0.15.3"
+thiserror = "2.0.12"
+#tauri-plugin-dialog = "2.2.2"
 
