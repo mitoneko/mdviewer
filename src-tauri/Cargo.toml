@@ -30,5 +30,6 @@ directories = "6.0.0"
 chrono = "0.4.41"
 tokio = { version = "1.45.1", features = ["io-util", "rt", "rt-multi-thread"] }
 rfd = "0.15.3"
+thiserror = "2.0.12"
 #tauri-plugin-dialog = "2.2.2"
 

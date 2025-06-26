@@ -17,13 +17,17 @@ impl Document {
     }
 
     /// ドキュメントのファイルパスを設定
-    pub fn set_file_path<P: AsRef<Path>>(&self, path: P) {
+    pub fn set_file_path<P: AsRef<Path>>(&self, path: P) -> Result<(), DocumentError> {
+        let path: &Path = path.as_ref();
+        self.file_path_exists(path)?;
+
         let mut file_path = self.file_path.lock().unwrap_or_else(|mut e| {
             **e.get_mut() = None;
             self.file_path.clear_poison();
             e.into_inner()
         });
-        *file_path = Some(path.as_ref().to_path_buf());
+        *file_path = Some(path.to_path_buf());
+        Ok(())
     }
 
     /// ドキュメントのファイルパスを取得
@@ -37,7 +41,7 @@ impl Document {
     }
 
     /// MDファイルの内容を取得する。
-    pub async fn md_contents(&self) -> Result<String, std::io::Error> {
+    pub async fn md_contents(&self) -> Result<String, DocumentError> {
         let file_path = self.file_path();
         match file_path {
             Some(path) => {
@@ -56,13 +60,30 @@ impl Document {
     }
 
     /// html変換済みドキュメントを取得する。
-    pub async fn html_contents(&self) -> Result<String, std::io::Error> {
+    pub async fn html_contents(&self) -> Result<String, DocumentError> {
         let md_contents = self.md_contents().await?;
         let parser_options = pulldown_cmark::Options::all();
         let parser = pulldown_cmark::Parser::new_ext(&md_contents, parser_options);
         let mut html_output = String::new();
         pulldown_cmark::html::push_html(&mut html_output, parser);
         Ok(html_output)
+    }
+
+    /// ファイルパスの存在チェックを行う。
+    fn file_path_exists<P: AsRef<Path>>(&self, path: P) -> Result<(), DocumentError> {
+        let path: &Path = path.as_ref();
+        match path.try_exists() {
+            Ok(exists) => {
+                if !exists {
+                    Err(DocumentError::FileNotFound(
+                        path.to_string_lossy().to_string(),
+                    ))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(e) => Err(DocumentError::IoError(e)),
+        }
     }
 }
 
@@ -72,6 +93,15 @@ impl Default for Document {
             file_path: Mutex::new(None),
         }
     }
+}
+
+/// ドキュメント操作に関するエラー
+#[derive(thiserror::Error, Debug)]
+pub enum DocumentError {
+    #[error("ioエラー発生: {0}")]
+    IoError(#[from] std::io::Error),
+    #[error("ファイルが見つかりません: {0}")]
+    FileNotFound(String),
 }
 
 #[cfg(test)]
