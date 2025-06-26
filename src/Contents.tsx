@@ -19,7 +19,7 @@ export default function Contents() {
 
     // Rust側でコンテンツの変更通知があった時、コンテンツを再取得する。
     useEffect(() => {
-        let unlisten: any;
+        let unlisten: UnlistenFn;
         async function f() {
             unlisten = await listen("invalid_content", () => {
                 queryClient.invalidateQueries({ queryKey: ["contents"] });
