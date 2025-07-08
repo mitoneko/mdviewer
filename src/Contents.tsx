@@ -24,7 +24,7 @@ export default function Contents() {
         });
         return () => {
             // クリーンアップ関数でイベントリスナーを解除
-            unlisten.then(unliten => unliten());
+            unlisten.then(unlisten => unlisten());
         };
     }, []);
 
