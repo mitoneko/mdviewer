@@ -8,9 +8,10 @@ mod menu;
 mod utils;
 
 use clap::Parser;
+use tauri::Manager;
 
 use command::{choose_file, contents};
-use document::Document;
+use document::DocumentBuilder;
 use menu::{build_menu, menu_event_handler};
 
 fn main() {
@@ -18,16 +19,16 @@ fn main() {
     if args.log || args.debug {
         init_log(args.debug);
     }
-    let doc = Document::new();
-    if let Some(file_name) = args.file_name {
-        if let Err(e) = doc.set_file_path(file_name) {
+    let mut doc = DocumentBuilder::default();
+    if let Some(ref file_name) = args.file_name {
+        doc = doc.set_file_path(file_name).unwrap_or_else(|e| {
             log::error!("引数のファイル名が不正です。: {}", e);
             eprintln!("引数のファイル名が不正です。: {}", e);
             std::process::exit(1);
-        }
+        });
     }
-    match doc.file_path() {
-        Some(path) => log::info!("ファイル名: {:?}", path),
+    match args.file_name {
+        Some(ref path) => log::info!("ファイル名: {:?}", path),
         None => log::info!("ファイル名は指定されていません。"),
     }
 
@@ -35,10 +36,20 @@ fn main() {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run(document: document::Document) {
+pub fn run(document: document::DocumentBuilder) {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(document)
+        .setup(move |app| {
+            let app_handle = app.handle();
+            let doc = document.build(app_handle).unwrap_or_else(|e| {
+                log::error!("document構造体の初期化に失敗しました。: {}", e);
+                app_handle.exit(1);
+                unreachable!();
+            });
+            app_handle.manage(doc);
+            Ok(())
+        })
+        //.manage(document)
         .menu(build_menu)
         .on_menu_event(menu_event_handler)
         .invoke_handler(tauri::generate_handler![contents, choose_file,])

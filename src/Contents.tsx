@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import parse from "html-react-parser";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,19 +19,19 @@ export default function Contents() {
 
     // Rust側でコンテンツの変更通知があった時、コンテンツを再取得する。
     useEffect(() => {
-        let unlisten: UnlistenFn;
-        async function f() {
-            unlisten = await listen("invalid_content", () => {
-                queryClient.invalidateQueries({ queryKey: ["contents"] });
-            });
-        };
-        f();
+        const unlisten = listen("invalid_content", () => {
+            queryClient.invalidateQueries({ queryKey: ["contents"] });
+        });
         return () => {
-            if (unlisten) {
-                unlisten();
-            }
+            // クリーンアップ関数でイベントリスナーを解除
+            unlisten.then(unlisten => unlisten());
         };
     }, []);
+
+    // コンテンツが変更された時、表示をトップにスクロールする
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [contents]);
 
     if (isPending) {
         return ( <p>Loading...</p> );
